@@ -1,8 +1,9 @@
 package clientpackage;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import operation.operation;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Scanner;
@@ -18,10 +19,10 @@ public class client {
             socket.connect(adresseServeur);
             System.out.println("je suis un client connecté");
 
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             Scanner sc = new Scanner(System.in);
-
 
             Pattern modele = Pattern.compile(
                     "^\\s*(-?\\d+(?:\\.\\d+)?)\\s*([+\\-*/])\\s*(-?\\d+(?:\\.\\d+)?)\\s*$");
@@ -31,7 +32,7 @@ public class client {
                 String saisie = sc.nextLine();
 
                 if (saisie.trim().equalsIgnoreCase("q")) {
-                    out.writeUTF("q");
+                    out.writeObject(new operation(0, 'q', 0));
                     out.flush();
                     break;
                 }
@@ -42,24 +43,21 @@ public class client {
                     continue;
                 }
 
-                out.writeUTF(m.group(1));
-                out.writeUTF(m.group(2));
-                out.writeUTF(m.group(3));
+                double a = Double.parseDouble(m.group(1));
+                char op = m.group(2).charAt(0);
+                double b = Double.parseDouble(m.group(3));
+
+                operation operation = new operation(a, op, b);
+                out.writeObject(operation);
                 out.flush();
 
-                String resultat = in.readUTF();
+                String resultat = (String) in.readObject();
                 System.out.println("Résultat : " + resultat);
             }
 
             socket.close();
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 }
-
-
-
-
-
-

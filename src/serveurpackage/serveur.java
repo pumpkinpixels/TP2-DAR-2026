@@ -1,8 +1,9 @@
 package serveurpackage;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import operation.operation;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -19,40 +20,39 @@ public class serveur {
             Socket socket = serverSocket.accept();
             System.out.println("un client est connecté");
 
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 
             while (true) {
-                String a = in.readUTF();
-                if (a.equals("q")) {
+                operation operation = (operation) in.readObject();
+
+                char op = operation.getOperateur();
+                if (op == 'q') {
                     break;
                 }
-                String op = in.readUTF();
-                String b = in.readUTF();
-
-                double x = Double.parseDouble(a);
-                double y = Double.parseDouble(b);
+                double x = operation.getOperande1();
+                double y = operation.getOperande2();
                 String resultat;
 
                 switch (op) {
-                    case "+": resultat = String.valueOf(x + y); break;
-                    case "-": resultat = String.valueOf(x - y); break;
-                    case "*": resultat = String.valueOf(x * y); break;
-                    case "/":
+                    case '+': resultat = String.valueOf(x + y); break;
+                    case '-': resultat = String.valueOf(x - y); break;
+                    case '*': resultat = String.valueOf(x * y); break;
+                    case '/':
                         if (y == 0) resultat = "Erreur : division par zéro";
                         else resultat = String.valueOf(x / y);
                         break;
                     default: resultat = "Opérateur invalide";
                 }
 
-                out.writeUTF(resultat);
+                out.writeObject(resultat);
                 out.flush();
             }
 
             socket.close();
-
             serverSocket.close();
-        } catch (IOException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
