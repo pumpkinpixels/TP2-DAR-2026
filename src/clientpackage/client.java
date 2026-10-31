@@ -14,7 +14,7 @@ public class client {
     public static void main(String[] args) {
         try {
             System.out.println("Je suis un client pas encore connecté…");
-            InetSocketAddress adresseServeur = new InetSocketAddress("127.0.0.1", 1234);
+            InetSocketAddress adresseServeur = new InetSocketAddress("192.168.56.1", 1234);
             Socket socket = new Socket();
             socket.connect(adresseServeur);
             System.out.println("je suis un client connecté");
@@ -23,6 +23,10 @@ public class client {
             out.flush();
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             Scanner sc = new Scanner(System.in);
+
+            // Réception du numéro d'ordre envoyé par le serveur
+            int numero = (Integer) in.readObject();
+            System.out.println("Vous êtes le client n°" + numero);
 
             Pattern modele = Pattern.compile(
                     "^\\s*(-?\\d+(?:\\.\\d+)?)\\s*([+\\-*/])\\s*(-?\\d+(?:\\.\\d+)?)\\s*$");
